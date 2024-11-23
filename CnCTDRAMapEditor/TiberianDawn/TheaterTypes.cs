@@ -14,7 +14,9 @@
 // with this program. If not, see https://github.com/electronicarts/CnC_Remastered_Collection
 using MobiusEditor.Model;
 using MobiusEditor.Utility;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 
@@ -33,14 +35,34 @@ namespace MobiusEditor.TiberianDawn
         // Experimental. Ignore this.
         public static readonly TheaterType Caribbean = new TheaterType(5, "Caribbean", "caribbea", "car", true, "TD_Terrain_Caribbean", commonTilesets);
 
-        private static TheaterType[] Types;
+        private static List<TheaterType> Types;
 
         static TheaterTypes()
         {
             Types =
-                (from field in typeof(TheaterTypes).GetFields(BindingFlags.Static | BindingFlags.Public)
+                new List<TheaterType>((from field in typeof(TheaterTypes).GetFields(BindingFlags.Static | BindingFlags.Public)
                  where field.IsInitOnly && typeof(TheaterType).IsAssignableFrom(field.FieldType)
-                 select field.GetValue(null) as TheaterType).OrderBy(th => th.ID).ToArray();
+                 select field.GetValue(null) as TheaterType).OrderBy(th => th.ID));
+        }
+
+        public static TheaterType ModifyOrAdd(string name, string classicTileset, string classicExt, bool modTheater, string mainTileSet)
+        {
+            TheaterType newtype = null;
+            for (sbyte i = 0; i < Types.Count; i++)
+            {
+                if (Types[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    // found an existing entry. Try to replace it
+                    newtype = new TheaterType(i, name, classicTileset, classicExt, modTheater, mainTileSet, commonTilesets);
+                    Types[i] = newtype;
+                    return newtype;
+                }
+            }
+
+            // add as new entry
+            newtype = new TheaterType((sbyte)Types.Count, name, classicTileset, classicExt, modTheater, mainTileSet, commonTilesets);
+            Types.Add(newtype);
+            return newtype;
         }
 
         public static IEnumerable<TheaterType> GetAllTypes()

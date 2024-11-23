@@ -121,6 +121,11 @@ namespace MobiusEditor.RedAlert
             //TestFileExists(mfm, loadErrors,prefix, "mplayer.ini");
         }
 
+        public override void InitModFiles(List<string> loadErrors, List<string> fileLoadErrors, bool forRemaster)
+        {
+
+        }
+
         public override string GetClassicOpposingPlayer(string player) => HouseTypes.GetClassicOpposingPlayer(player);
 
         public override bool SupportsMapLayer(MapLayerFlag mlf)

@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using MobiusEditor.Model;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace MobiusEditor.TiberianDawn
 {
@@ -51,14 +52,60 @@ namespace MobiusEditor.TiberianDawn
         public static readonly UnitType C17 = new AircraftType(3, "c17", "TEXT_UNIT_TITLE_C17", "Badguy", FrameUsage.Frames32Full, UnitTypeFlag.IsFixedWing);
         public static readonly UnitType Orca = new AircraftType(4, "orca", "TEXT_UNIT_TITLE_GDI_ORCA", "Goodguy", FrameUsage.Frames32Full, UnitTypeFlag.IsArmed);
 
-        private static readonly UnitType[] Types;
+        private static readonly List<UnitType> Types;
 
         static UnitTypes()
         {
             Types =
-                (from field in typeof(UnitTypes).GetFields(BindingFlags.Static | BindingFlags.Public)
+                new List<UnitType>(from field in typeof(UnitTypes).GetFields(BindingFlags.Static | BindingFlags.Public)
                  where field.IsInitOnly && typeof(UnitType).IsAssignableFrom(field.FieldType)
-                 select field.GetValue(null) as UnitType).ToArray();
+                 select field.GetValue(null) as UnitType);
+        }
+
+        public static UnitType ModifyOrAddVehicle(string name, string text, string ownerHouse, FrameUsage bodyFrameUsage, FrameUsage turrFrameUsage, int turrOffset, int turrY, UnitTypeFlag flags)
+        {
+            string stringTextid = "TEXT_" + text;
+            Globals.TheGameTextManager[stringTextid] = text;
+            UnitType newtype = null;
+            for (int i = 0; i < Types.Count; i++)
+            {
+                if (Types[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    // found an existing entry. Try to replace it
+                    newtype = new VehicleType(i, name, stringTextid, ownerHouse, bodyFrameUsage, turrFrameUsage, turrOffset, turrY, flags);
+                    Types[i] = newtype;
+                    return newtype;
+                }
+            }
+
+            // add as new entry 
+            int count = Types.Where(t => !t.IsGroundUnit).Count();
+            newtype = new VehicleType(count, name, stringTextid, ownerHouse, bodyFrameUsage, turrFrameUsage, turrOffset, turrY, flags);
+            Types.Add(newtype);
+            return newtype;
+        }
+
+        public static UnitType ModifyOrAddAircraft(string name, string text, string ownerHouse, FrameUsage bodyFrameUsage, FrameUsage turrFrameUsage, string turret, string turret2, int turrOffset, int turrY, UnitTypeFlag flags)
+        {
+            string stringTextid = "TEXT_" + text;
+            Globals.TheGameTextManager[stringTextid] = text;
+            UnitType newtype = null;
+            for (int i = 0; i < Types.Count; i++)
+            {
+                if (Types[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    // found an existing entry. Try to replace it
+                    newtype = new AircraftType(i, name, stringTextid, ownerHouse, bodyFrameUsage, turrFrameUsage, turret, turret2, turrOffset, turrY, flags);
+                    Types[i] = newtype;
+                    return newtype;
+                }
+            }
+
+            // add as new entry 
+            int count = Types.Where(t => !t.IsGroundUnit).Count();
+            newtype = new AircraftType(count, name, stringTextid, ownerHouse, bodyFrameUsage, turrFrameUsage, turret, turret2, turrOffset, turrY, flags);
+            Types.Add(newtype);
+            return newtype;
         }
 
         public static IEnumerable<UnitType> GetTypes(Boolean withoutAircraft)

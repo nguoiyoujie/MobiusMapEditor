@@ -13,6 +13,7 @@
 // GNU General Public License along with permitted additional restrictions
 // with this program. If not, see https://github.com/electronicarts/CnC_Remastered_Collection
 using MobiusEditor.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -42,14 +43,36 @@ namespace MobiusEditor.TiberianDawn
         public static readonly InfantryType Delphi = new InfantryType(18, "delphi", "TEXT_UNIT_TITLE_DELPHI", "Neutral", UnitTypeFlag.IsArmed | UnitTypeFlag.NoRemap);
         public static readonly InfantryType DrChan = new InfantryType(19, "chan", "TEXT_UNIT_TITLE_CHAN", "Neutral", UnitTypeFlag.NoRemap);
 
-        private static readonly InfantryType[] Types;
+        private static readonly List<InfantryType> Types;
 
         static InfantryTypes()
         {
             Types =
-                (from field in typeof(InfantryTypes).GetFields(BindingFlags.Static | BindingFlags.Public)
+                new List<InfantryType>(from field in typeof(InfantryTypes).GetFields(BindingFlags.Static | BindingFlags.Public)
                  where field.IsInitOnly && typeof(InfantryType).IsAssignableFrom(field.FieldType)
-                 select field.GetValue(null) as InfantryType).ToArray();
+                 select field.GetValue(null) as InfantryType);
+        }
+
+        public static InfantryType ModifyOrAdd(string name, string text, string ownerHouse, UnitTypeFlag flags)
+        {
+            string stringTextid = "TEXT_" + text;
+            Globals.TheGameTextManager[stringTextid] = text;
+            InfantryType newtype = null;
+            for (int i = 0; i < Types.Count; i++)
+            {
+                if (Types[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    // found an existing entry. Try to replace it
+                    newtype = new InfantryType(i, name, stringTextid, ownerHouse, flags);
+                    Types[i] = newtype;
+                    return newtype;
+                }
+            }
+
+            // add as new entry
+            newtype = new InfantryType(Types.Count, name, stringTextid, ownerHouse, flags);
+            Types.Add(newtype);
+            return newtype;
         }
 
         public static IEnumerable<InfantryType> GetTypes()

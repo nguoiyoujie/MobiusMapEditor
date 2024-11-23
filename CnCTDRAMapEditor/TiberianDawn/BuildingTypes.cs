@@ -13,6 +13,8 @@
 // GNU General Public License along with permitted additional restrictions
 // with this program. If not, see https://github.com/electronicarts/CnC_Remastered_Collection
 using MobiusEditor.Model;
+using MobiusEditor.Utility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -93,14 +95,36 @@ namespace MobiusEditor.TiberianDawn
         public static readonly BuildingType Barbwire = new BuildingType(63, "barb", "TEXT_STRUCTURE_RA_BARB", 0, 0, false, 1, 1, null, "Goodguy", BuildingTypeFlag.Wall | BuildingTypeFlag.NoRemap);
         public static readonly BuildingType Wood = new BuildingType(64, "wood", "TEXT_STRUCTURE_TD_WOOD", 0, 0, false, 1, 1, null, "Goodguy", BuildingTypeFlag.Wall | BuildingTypeFlag.NoRemap);
 
-        private static readonly BuildingType[] Types;
+        private static readonly List<BuildingType> Types;
 
         static BuildingTypes()
         {
             Types =
-                (from field in typeof(BuildingTypes).GetFields(BindingFlags.Static | BindingFlags.Public)
-                 where field.IsInitOnly && typeof(BuildingType).IsAssignableFrom(field.FieldType)
-                 select field.GetValue(null) as BuildingType).ToArray();
+                new List<BuildingType>(from field in typeof(BuildingTypes).GetFields(BindingFlags.Static | BindingFlags.Public)
+                                       where field.IsInitOnly && typeof(BuildingType).IsAssignableFrom(field.FieldType)
+                                       select field.GetValue(null) as BuildingType);
+        }
+
+        public static BuildingType ModifyOrAdd(string name, string text, int powerProd, int powerUse, int storage, bool capturable, int width, int height, string occupyMask, string ownerHouse, string factoryOverlay, int frameOffset, string graphicsSource, BuildingTypeFlag flag, int zOrder)
+        {
+            string stringTextid = "TEXT_" + text;
+            Globals.TheGameTextManager[stringTextid] = text;
+            BuildingType newtype = null;
+            for (int i = 0; i < Types.Count; i++)
+            {
+                if (Types[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    // found an existing entry. Try to replace it
+                    newtype = new BuildingType(i, name, stringTextid, powerProd, powerUse, storage, capturable, width, height, occupyMask, ownerHouse, factoryOverlay, frameOffset, graphicsSource, flag, zOrder);
+                    Types[i] = newtype;
+                    return newtype;
+                }
+            }
+
+            // add as new entry
+            newtype = new BuildingType(Types.Count, name, stringTextid, powerProd, powerUse, storage, capturable, width, height, occupyMask, ownerHouse, factoryOverlay, frameOffset, graphicsSource, flag, zOrder);
+            Types.Add(newtype);
+            return newtype;
         }
 
         public static IEnumerable<BuildingType> GetTypes()

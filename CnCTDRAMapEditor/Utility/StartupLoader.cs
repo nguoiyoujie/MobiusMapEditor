@@ -280,6 +280,11 @@ namespace MobiusEditor.Utility
             //gtm.Dump(Path.Combine(Program.ApplicationPath, "alltext.txt"));
             AddMissingRemasterText(gtm);
             Globals.TheGameTextManager = gtm;
+
+            foreach (GameInfo gic in gameTypeInfo)
+            {
+                gic.InitModFiles(loadErrors, fileLoadErrors, true);
+            }
             return true;
         }
 
@@ -396,6 +401,12 @@ namespace MobiusEditor.Utility
             GameTextManagerClassic gtm = new GameTextManagerClassic(mfm, gameStringsFiles);
             AddMissingClassicText(gtm);
             Globals.TheGameTextManager = gtm;
+
+            foreach (GameType gi in gameTypes)
+            {
+                GameInfo gic = gameTypeInfo[(int)gi];
+                gic.InitModFiles(loadErrors, fileLoadErrors, false);
+            }
             return true;
         }
 

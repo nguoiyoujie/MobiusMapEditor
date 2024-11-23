@@ -13,6 +13,7 @@
 // GNU General Public License along with permitted additional restrictions
 // with this program. If not, see https://github.com/electronicarts/CnC_Remastered_Collection
 using MobiusEditor.Model;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -55,14 +56,37 @@ namespace MobiusEditor.TiberianDawn
         public static readonly TerrainType Rock6 = new TerrainType(30, "rock6", "TEXT_PROP_TITLE_ROCK", 3, 2, new Point(28, 40), "000 111");
         public static readonly TerrainType Rock7 = new TerrainType(31, "rock7", "TEXT_PROP_TITLE_ROCK", 5, 1, new Point(57, 22), "11110");
 
-        private static TerrainType[] Types;
+        private static List<TerrainType> Types;
 
         static TerrainTypes()
         {
             Types =
-                (from field in typeof(TerrainTypes).GetFields(BindingFlags.Static | BindingFlags.Public)
+                new List<TerrainType>(from field in typeof(TerrainTypes).GetFields(BindingFlags.Static | BindingFlags.Public)
                  where field.IsInitOnly && typeof(TerrainType).IsAssignableFrom(field.FieldType)
-                 select field.GetValue(null) as TerrainType).ToArray();
+                 select field.GetValue(null) as TerrainType);
+        }
+
+
+        public static TerrainType ModifyOrAdd(string name, string text, int width, int height, int centerX, int centerY, string occupyMask)
+        {
+            string stringTextid = "TEXT_" + text;
+            Globals.TheGameTextManager[stringTextid] = text;
+            TerrainType newtype = null;
+            for (int i = 0; i < Types.Count; i++)
+            {
+                if (Types[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    // found an existing entry. Try to replace it
+                    newtype = new TerrainType(i, name, stringTextid, width, height, new Point(centerX, centerY), occupyMask);
+                    Types[i] = newtype;
+                    return newtype;
+                }
+            }
+
+            // add as new entry
+            newtype = new TerrainType(Types.Count, name, stringTextid, width, height, new Point(centerX, centerY), occupyMask);
+            Types.Add(newtype);
+            return newtype;
         }
 
         public static IEnumerable<TerrainType> GetTypes()
