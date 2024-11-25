@@ -1340,6 +1340,7 @@ namespace MobiusEditor.Utility
         // Name of the strings file for each game.
         private Dictionary<GameType, string> gameTextPaths;
         private Dictionary<string, int> gameTextMapping;
+        private Dictionary<string, int> gameTextMappingAdditions = new Dictionary<string, int>();
         private List<byte[]> stringsFile;
         private readonly Dictionary<string, string> gameTextAdditions = new Dictionary<string, string>();
         private readonly Encoding encoding = Encoding.GetEncoding(437);
@@ -1359,6 +1360,11 @@ namespace MobiusEditor.Utility
                 throw new InvalidOperationException("The file manager is not reset to the given game; cannot load the correct files.");
             }
             this.gameTextMapping = this.GetGameMappings(gameType);
+            foreach (var kvp in gameTextMappingAdditions)
+            {
+                // restore the modded text references tot the default map
+                gameTextMapping[kvp.Key] = kvp.Value;
+            }
             if (gameTextPaths.TryGetValue(gameType, out string gameTextFile))
             {
                 try
@@ -1461,5 +1467,13 @@ namespace MobiusEditor.Utility
             return null;
         }
 
+
+        public void AddMappedText(string key, int value)
+        {
+            if (!string.IsNullOrEmpty(key))
+            {
+                gameTextMappingAdditions[key] = value;
+            }
+        }
     }
 }

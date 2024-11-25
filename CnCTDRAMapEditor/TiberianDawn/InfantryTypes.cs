@@ -53,11 +53,9 @@ namespace MobiusEditor.TiberianDawn
                  select field.GetValue(null) as InfantryType);
         }
 
-        public static InfantryType ModifyOrAdd(string name, string text, string ownerHouse, UnitTypeFlag flags)
+        public static InfantryType ModifyOrAdd(string name, string stringTextid, string ownerHouse, UnitTypeFlag flags)
         {
-            string stringTextid = "TEXT_" + text;
-            Globals.TheGameTextManager[stringTextid] = text;
-            InfantryType newtype = null;
+            InfantryType newtype;
             for (int i = 0; i < Types.Count; i++)
             {
                 if (Types[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))

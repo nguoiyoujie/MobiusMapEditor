@@ -105,11 +105,9 @@ namespace MobiusEditor.TiberianDawn
                                        select field.GetValue(null) as BuildingType);
         }
 
-        public static BuildingType ModifyOrAdd(string name, string text, int powerProd, int powerUse, int storage, bool capturable, int width, int height, string occupyMask, string ownerHouse, string factoryOverlay, int frameOffset, string graphicsSource, BuildingTypeFlag flag, int zOrder)
+        public static BuildingType ModifyOrAdd(string name, string stringTextid, int powerProd, int powerUse, int storage, bool capturable, int width, int height, string occupyMask, string ownerHouse, string factoryOverlay, int frameOffset, string graphicsSource, BuildingTypeFlag flag, int zOrder)
         {
-            string stringTextid = "TEXT_" + text;
-            Globals.TheGameTextManager[stringTextid] = text;
-            BuildingType newtype = null;
+            BuildingType newtype;
             for (int i = 0; i < Types.Count; i++)
             {
                 if (Types[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))

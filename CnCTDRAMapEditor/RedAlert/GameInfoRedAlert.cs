@@ -121,7 +121,7 @@ namespace MobiusEditor.RedAlert
             //TestFileExists(mfm, loadErrors,prefix, "mplayer.ini");
         }
 
-        public override void InitModFiles(List<string> loadErrors, List<string> fileLoadErrors, bool forRemaster)
+        public override void InitModFiles(MixfileManager mfm, List<string> loadErrors, List<string> fileLoadErrors, bool forRemaster, Dictionary<string, int> mappedText, Dictionary<string, string> additionalText)
         {
 
         }

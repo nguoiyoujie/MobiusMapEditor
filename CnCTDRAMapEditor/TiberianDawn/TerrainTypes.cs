@@ -67,11 +67,9 @@ namespace MobiusEditor.TiberianDawn
         }
 
 
-        public static TerrainType ModifyOrAdd(string name, string text, int width, int height, int centerX, int centerY, string occupyMask)
+        public static TerrainType ModifyOrAdd(string name, string stringTextid, int width, int height, int centerX, int centerY, string occupyMask)
         {
-            string stringTextid = "TEXT_" + text;
-            Globals.TheGameTextManager[stringTextid] = text;
-            TerrainType newtype = null;
+            TerrainType newtype;
             for (int i = 0; i < Types.Count; i++)
             {
                 if (Types[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))

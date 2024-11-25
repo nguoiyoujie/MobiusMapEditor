@@ -131,7 +131,7 @@ namespace MobiusEditor.Model
         /// <param name="loadErrors">List of load errors. </param>
         /// <param name="fileLoadErrors">A list to collect errors into.</param>
         /// <param name="forRemaster">Indicates if this init is for remastered mode.</param>
-        public abstract void InitModFiles(List<string> loadErrors, List<string> fileLoadErrors, bool forRemaster);
+        public abstract void InitModFiles(MixfileManager mfm, List<string> loadErrors, List<string> fileLoadErrors, bool forRemaster, Dictionary<string, int> mappedText, Dictionary<string, string> additionalText);
         /// <summary>Retrieves the typical opposing player for the given House name, e.g. for TD, GoodGuy will give BadGuy.</summary>
         /// <param name="player">The player to get the opposing player for.</param>
         /// <returns>The typical opposing player for the given House.</returns>

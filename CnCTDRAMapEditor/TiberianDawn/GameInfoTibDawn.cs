@@ -100,158 +100,127 @@ namespace MobiusEditor.TiberianDawn
             }
         }
 
-        public override void InitModFiles(List<string> loadErrors, List<string> fileLoadErrors, bool forRemaster)
+        public override void InitModFiles(MixfileManager mfm, List<string> loadErrors, List<string> fileLoadErrors, bool forRemaster, Dictionary<string, int> mappedText, Dictionary<string, string> additionalText)
         {
-            System.Threading.Thread.Sleep(3000);
             string folder = Path.GetFullPath(Path.Combine(Program.ApplicationPath, forRemaster ? ClassicFolderRemaster : ClassicFolder, ModFile));
             if (File.Exists(folder))
             {
                 INI ini = GeneralUtils.GetIniContents(folder, FileType.INI);
                 if (ini != null)
                 {
-                    // [BuildingTypes]
-                    if (ini.Sections["BuildingTypes"] is INISection buildingSec)
+                    // Existing [BuildingTypes]
+                    List<BuildingType> buildingtypes = BuildingTypes.GetTypes().ToList();
+                    foreach (BuildingType type in buildingtypes)
                     {
-                        foreach (var line in buildingSec)
+                        if (ini.Sections[type.Name] is INISection buildingSec)
                         {
-                            string[] tokens = line.Value.Split(',');
-                            string text = tokens.Length > 0 ? tokens[0] : null;
-                            string spowerProd = tokens.Length > 1 ? tokens[1] : string.Empty;
-                            string spowerUse = tokens.Length > 2 ? tokens[2] : string.Empty;
-                            string sstorage = tokens.Length > 3 ? tokens[3] : string.Empty;
-                            string scapturable = tokens.Length > 4 ? tokens[4] : string.Empty;
-                            string swidth = tokens.Length > 5 ? tokens[5] : string.Empty;
-                            string sheight = tokens.Length > 6 ? tokens[6] : string.Empty;
-                            string occupyMask = tokens.Length > 7 ? tokens[7] : null;
-                            string ownerHouse = tokens.Length > 8 ? tokens[8] : null;
-                            string factoryOverlay = tokens.Length > 9 ? tokens[9] : null;
-                            string sframeOffset = tokens.Length > 10 ? tokens[10] : string.Empty;
-                            string graphicsSource = tokens.Length > 11 ? tokens[11] : null;
-                            string sflag = tokens.Length > 12 ? tokens[12] : string.Empty;
-                            string szOrder = tokens.Length > 13 ? tokens[13] : string.Empty;
+                            InitModBuildingType(buildingSec, mappedText, additionalText);
+                        }
+                    }
 
-                            if ("NONE".Equals(factoryOverlay, StringComparison.OrdinalIgnoreCase)) { factoryOverlay = null; }
-                            if ("NONE".Equals(graphicsSource, StringComparison.OrdinalIgnoreCase)) { graphicsSource = null; }
-
-                            int.TryParse(spowerProd, out int powerProd);
-                            int.TryParse(spowerUse, out int powerUse);
-                            int.TryParse(sstorage, out int storage);
-                            bool.TryParse(scapturable, out bool capturable);
-                            int.TryParse(swidth, out int width);
-                            int.TryParse(sheight, out int height);
-                            int.TryParse(sframeOffset, out int frameOffset);
-                            BuildingTypeFlag.TryParse(sflag, out BuildingTypeFlag flag);
-                            int.TryParse(szOrder, out int zOrder);
-                            if (text != null)
+                    // New [BuildingTypes]
+                    if (ini.Sections["BuildingTypes"] is INISection buildinglistSec)
+                    {
+                        foreach (KeyValuePair<string, string> line in buildinglistSec)
+                        {
+                            if (ini.Sections[line.Value] is INISection buildingSec)
                             {
-                                BuildingTypes.ModifyOrAdd(line.Key, text, powerProd, powerUse, storage, capturable, width, height, occupyMask, ownerHouse, factoryOverlay, frameOffset, graphicsSource, flag, zOrder);
+                                InitModBuildingType(buildingSec, mappedText, additionalText);
                             }
                         }
                     }
 
-                    // [InfantryTypes]
-                    if (ini.Sections["InfantryTypes"] is INISection infantrySec)
+                    // Existing [InfantryTypes]
+                    List<InfantryType> infantrytypes = InfantryTypes.GetTypes().ToList();
+                    foreach (InfantryType type in infantrytypes)
                     {
-                        foreach (var line in infantrySec)
+                        if (ini.Sections[type.Name] is INISection infantrySec)
                         {
-                            string[] tokens = line.Value.Split(',');
-                            string text = tokens.Length > 0 ? tokens[0] : null;
-                            string ownerHouse = tokens.Length > 1 ? tokens[1] : null;
-                            string sflags = tokens.Length > 2 ? tokens[2] : string.Empty;
+                            InitModInfantryType(infantrySec, mappedText, additionalText);
+                        }
+                    }
 
-                            UnitTypeFlag.TryParse(sflags, out UnitTypeFlag flags);
-                            if (text != null)
+                    // New [InfantryTypes]
+                    if (ini.Sections["InfantryTypes"] is INISection infantrylistSec)
+                    {
+                        foreach (KeyValuePair<string, string> line in infantrylistSec)
+                        {
+                            if (ini.Sections[line.Value] is INISection infantrySec)
                             {
-                                InfantryTypes.ModifyOrAdd(line.Key, text, ownerHouse, flags);
+                                InitModInfantryType(infantrySec, mappedText, additionalText);
                             }
                         }
                     }
 
-                    // [VehicleTypes]
-                    if (ini.Sections["VehicleTypes"] is INISection vehicleSec)
+                    // Existing [VehicleTypes] and [AircraftTypes]
+                    List<UnitType> unittypes = UnitTypes.GetTypes(false).ToList();
+                    foreach (UnitType type in unittypes)
                     {
-                        foreach (var line in vehicleSec)
+                        if (ini.Sections[type.Name] is INISection vehiclelSec)
                         {
-                            string[] tokens = line.Value.Split(',');
-                            string text = tokens.Length > 0 ? tokens[0] : null;
-                            string ownerHouse = tokens.Length > 1 ? tokens[1] : null;
-                            string sbodyFrameUsage = tokens.Length > 2 ? tokens[2] : string.Empty;
-                            string sturrFrameUsage = tokens.Length > 3 ? tokens[3] : string.Empty;
-                            string sturrOffset = tokens.Length > 4 ? tokens[4] : string.Empty;
-                            string sturrY = tokens.Length > 5 ? tokens[5] : string.Empty;
-                            string sflags = tokens.Length > 6 ? tokens[6] : string.Empty;
-
-                            FrameUsage.TryParse(sbodyFrameUsage, out FrameUsage bodyFrameUsage);
-                            FrameUsage.TryParse(sturrFrameUsage, out FrameUsage turrFrameUsage);
-                            int.TryParse(sturrOffset, out int turrOffset);
-                            int.TryParse(sturrY, out int turrY);
-                            UnitTypeFlag.TryParse(sflags, out UnitTypeFlag flags);
-                            if (text != null)
+                            if (type.IsAircraft)
                             {
-                                UnitTypes.ModifyOrAddVehicle(line.Key, text, ownerHouse, bodyFrameUsage, turrFrameUsage, turrOffset, turrY, flags);
+                                InitModAircraftType(vehiclelSec, mappedText, additionalText);
+                            }
+                            else
+                            {
+                                InitModVehicleType(vehiclelSec, mappedText, additionalText);
                             }
                         }
                     }
 
-                    // [AircraftTypes]
-                    if (ini.Sections["AircraftTypes"] is INISection aircraftSec)
+                    // New [VehicleTypes]
+                    if (ini.Sections["VehicleTypes"] is INISection vehiclelistSec)
                     {
-                        foreach (var line in aircraftSec)
+                        foreach (KeyValuePair<string, string> line in vehiclelistSec)
                         {
-                            string[] tokens = line.Value.Split(',');
-                            string text = tokens.Length > 0 ? tokens[0] : null;
-                            string ownerHouse = tokens.Length > 1 ? tokens[1] : null;
-                            string sbodyFrameUsage = tokens.Length > 2 ? tokens[2] : string.Empty;
-                            string sturrFrameUsage = tokens.Length > 3 ? tokens[3] : string.Empty;
-                            string turret = tokens.Length > 4 ? tokens[4] : null;
-                            string turret2 = tokens.Length > 5 ? tokens[5] : null;
-                            string sturrOffset = tokens.Length > 6 ? tokens[6] : string.Empty;
-                            string sturrY = tokens.Length > 7 ? tokens[7] : string.Empty;
-                            string sflags = tokens.Length > 8 ? tokens[8] : string.Empty;
-
-                            if ("NONE".Equals(turret, StringComparison.OrdinalIgnoreCase)) { turret = null; }
-                            if ("NONE".Equals(turret2, StringComparison.OrdinalIgnoreCase)) { turret2 = null; }
-
-                            FrameUsage.TryParse(sbodyFrameUsage, out FrameUsage bodyFrameUsage);
-                            FrameUsage.TryParse(sturrFrameUsage, out FrameUsage turrFrameUsage);
-                            int.TryParse(sturrOffset, out int turrOffset);
-                            int.TryParse(sturrY, out int turrY);
-                            UnitTypeFlag.TryParse(sflags, out UnitTypeFlag flags);
-                            if (text != null)
+                            if (ini.Sections[line.Value] is INISection vehiclelSec)
                             {
-                                UnitTypes.ModifyOrAddAircraft(line.Key, text, ownerHouse, bodyFrameUsage, turrFrameUsage, turret, turret2, turrOffset, turrY, flags);
+                                InitModVehicleType(vehiclelSec, mappedText, additionalText);
                             }
                         }
                     }
 
-                    // [TerrainTypes]
-                    if (ini.Sections["TerrainTypes"] is INISection terrainSec)
+                    // New [AircraftTypes]
+                    if (ini.Sections["AircraftTypes"] is INISection aircraftlistSec)
                     {
-                        foreach (var line in terrainSec)
+                        foreach (KeyValuePair<string, string> line in aircraftlistSec)
                         {
-                            string[] tokens = line.Value.Split(',');
-                            string text = tokens.Length > 0 ? tokens[0] : null;
-                            string swidth = tokens.Length > 1 ? tokens[1] : string.Empty;
-                            string sheight = tokens.Length > 2 ? tokens[2] : string.Empty;
-                            string scenterX = tokens.Length > 3 ? tokens[3] : string.Empty;
-                            string scenterY = tokens.Length > 4 ? tokens[4] : string.Empty;
-                            string occupyMask = tokens.Length > 5 ? tokens[5] : null;
-
-                            int.TryParse(swidth, out int width);
-                            int.TryParse(sheight, out int height);
-                            int.TryParse(scenterX, out int centerX);
-                            int.TryParse(scenterY, out int centerY);
-                            if (text != null)
+                            if (ini.Sections[line.Value] is INISection aircraftSec)
                             {
-                                TerrainTypes.ModifyOrAdd(line.Key, text,  width, height, centerX, centerY, occupyMask);
+                                InitModAircraftType(aircraftSec, mappedText, additionalText);
+                            }
+                        }
+                    }
+
+                    // Existing [TerrainTypes]
+                    List<TerrainType> terraintypes = TerrainTypes.GetTypes().ToList();
+                    foreach (TerrainType type in terraintypes)
+                    {
+                        if (ini.Sections[type.Name] is INISection terrainSec)
+                        {
+                            InitModTerrainType(terrainSec, mappedText, additionalText);
+                        }
+                    }
+
+                    // New [TerrainTypes]
+                    if (ini.Sections["TerrainTypes"] is INISection terrainlistSec)
+                    {
+                        foreach (KeyValuePair<string, string> line in terrainlistSec)
+                        {
+                            if (ini.Sections[line.Value] is INISection terrainSec)
+                            {
+                                InitModTerrainType(terrainSec, mappedText, additionalText);
                             }
                         }
                     }
 
                     // [TheaterTypes]
+                    // parse single line
                     if (ini.Sections["TheaterTypes"] is INISection theaterSec)
                     {
-                        foreach (var line in theaterSec)
+                        string prefix = ShortName + ": ";
+                        foreach (KeyValuePair<string, string> line in theaterSec)
                         {
                             string[] tokens = line.Value.Split(',');
                             string tileset = tokens.Length > 0 ? tokens[0] : null;
@@ -262,13 +231,303 @@ namespace MobiusEditor.TiberianDawn
                             bool.TryParse(smodTheater, out bool modTheater);
                             if (tileset != null && ext != null)
                             {
-                                TheaterTypes.ModifyOrAdd(line.Key, tileset, ext, modTheater, remasteredTileset);
+                                TheaterType tdTheater = TheaterTypes.ModifyOrAdd(line.Key, tileset, ext, modTheater, remasteredTileset);
+                                mfm.LoadArchive(GameType, tdTheater.ClassicTileset + ".mix", false);
                             }
+                        }
+
+                        // check
+                        mfm.Reset(GameType, null);
+                        List<string> loadedFiles = mfm.ToList();
+                        foreach (var theater in TheaterTypes.GetAllTypes())
+                        {
+                            StartupLoader.TestMixExists(loadedFiles, loadErrors, prefix, theater, !theater.IsModTheater);
                         }
                     }
                 }
             }
         }
+
+        private void InitModBuildingType(INISection section, Dictionary<string, int> mappedText, Dictionary<string, string> additionalText)
+        {
+            string id = section.Name;
+            string sTextID = section.TryGetValue("TextID");
+            string text = section.TryGetValue("Name");
+            string sPowerProd = section.TryGetValue("PowerProd");
+            string sPowerUse = section.TryGetValue("PowerUse");
+            string sStorage = section.TryGetValue("Storage");
+            string sCapturable = section.TryGetValue("Capturable");
+            string sWidth = section.TryGetValue("Width");
+            string sHeight = section.TryGetValue("Height");
+            string occupyMask = section.TryGetValue("OccupyMask");
+            string owner = section.TryGetValue("Owner");
+            string factoryOverlay = section.TryGetValue("FactoryOverlay");
+            string sFrameOffset = section.TryGetValue("FrameOffset");
+            string graphicsSource = section.TryGetValue("Image");
+            string isConstructionYard = section.TryGetValue("IsConstructionYard");
+            string bib = section.TryGetValue("Bib");
+            string isTheaterDependent = section.TryGetValue("IsTheaterDependent");
+            string isTurret = section.TryGetValue("IsTurret");
+            string isSingleFrame = section.TryGetValue("IsSingleFrame");
+            string noRemap = section.TryGetValue("NoRemap");
+            string isWall = section.TryGetValue("IsWall");
+            string sZOrder = section.TryGetValue("ZOrder");
+
+            // parse and apply defaults (int)
+            int.TryParse(sTextID, out int textID);
+            int.TryParse(sPowerProd, out int powerProd);
+            int.TryParse(sPowerUse, out int powerUse);
+            int.TryParse(sStorage, out int storage);
+            bool capturable = YesNoBooleanTypeConverter.Parse(sCapturable);
+            if (!int.TryParse(sWidth, out int width)) { width = 1; }
+            if (!int.TryParse(sHeight, out int height)) { height = 1; }
+            int.TryParse(sFrameOffset, out int frameOffset);
+            BuildingTypeFlag flags = BuildingTypeFlag.None;
+            if (YesNoBooleanTypeConverter.Parse(isConstructionYard)) { flags |= BuildingTypeFlag.Factory; }
+            if (YesNoBooleanTypeConverter.Parse(bib)) { flags |= BuildingTypeFlag.Bib; }
+            if (YesNoBooleanTypeConverter.Parse(isTheaterDependent)) { flags |= BuildingTypeFlag.TheaterDependent; }
+            if (YesNoBooleanTypeConverter.Parse(isTurret)) { flags |= BuildingTypeFlag.Turret; }
+            if (YesNoBooleanTypeConverter.Parse(isSingleFrame)) { flags |= BuildingTypeFlag.SingleFrame; }
+            if (YesNoBooleanTypeConverter.Parse(noRemap)) { flags |= BuildingTypeFlag.NoRemap; }
+            if (YesNoBooleanTypeConverter.Parse(isWall)) { flags |= BuildingTypeFlag.Wall; }
+            if (!int.TryParse(sZOrder, out int zorder)) { zorder = 10; }
+
+            // apply defaults (string)
+            if ("NONE".Equals(factoryOverlay, StringComparison.OrdinalIgnoreCase)) { factoryOverlay = null; }
+            if ("NONE".Equals(graphicsSource, StringComparison.OrdinalIgnoreCase)) { graphicsSource = null; }
+            if (string.IsNullOrEmpty(occupyMask) || "NONE".Equals(occupyMask, StringComparison.OrdinalIgnoreCase)) { occupyMask = null; }
+            if (string.IsNullOrEmpty(owner) || "NONE".Equals(owner, StringComparison.OrdinalIgnoreCase)) { owner = "Neutral"; }
+
+            string stringText;
+            if (!string.IsNullOrEmpty(text)) 
+            {
+                stringText = "TEXT_STRUCTURE_" + text;
+                if (additionalText != null)
+                {
+                    additionalText[stringText] = text;
+                }
+            }
+            else
+            {
+                stringText = "TEXT_STRUCTURE_" + textID;
+                if (mappedText != null)
+                {
+                    mappedText[stringText] = textID;
+                }
+            }
+
+            BuildingTypes.ModifyOrAdd(id, stringText, powerProd, powerUse, storage, capturable, width, height, occupyMask, owner, factoryOverlay, frameOffset, graphicsSource, flags, zorder);
+        }
+
+        private void InitModInfantryType(INISection section, Dictionary<string, int> mappedText, Dictionary<string, string> additionalText)
+        {
+            string id = section.Name;
+            string sTextID = section.TryGetValue("TextID");
+            string text = section.TryGetValue("Name");
+            string owner = section.TryGetValue("Owner");
+            string isArmed = section.TryGetValue("IsArmed");
+            string noRemap = section.TryGetValue("NoRemap");
+
+            // parse and apply defaults (int)
+            int.TryParse(sTextID, out int textID);
+            UnitTypeFlag flags = UnitTypeFlag.None;
+            if (YesNoBooleanTypeConverter.Parse(isArmed)) { flags |= UnitTypeFlag.IsArmed; }
+            if (YesNoBooleanTypeConverter.Parse(noRemap)) { flags |= UnitTypeFlag.NoRemap; }
+
+            // apply defaults (string)
+            if (string.IsNullOrEmpty(owner) || "NONE".Equals(owner, StringComparison.OrdinalIgnoreCase)) { owner = "Neutral"; }
+
+            string stringText;
+            if (!string.IsNullOrEmpty(text))
+            {
+                stringText = "TEXT_INFANTRY_" + text;
+                if (additionalText != null)
+                {
+                    additionalText[stringText] = text;
+                }
+            }
+            else
+            {
+                stringText = "TEXT_INFANTRY_" + textID;
+                if (mappedText != null)
+                {
+                    mappedText[stringText] = textID;
+                }
+            }
+
+            InfantryTypes.ModifyOrAdd(id, stringText, owner, flags);
+        }
+
+        private void InitModVehicleType(INISection section, Dictionary<string, int> mappedText, Dictionary<string, string> additionalText)
+        {
+            string id = section.Name;
+            string sTextID = section.TryGetValue("TextID");
+            string text = section.TryGetValue("Name");
+            string owner = section.TryGetValue("Owner");
+            string sFacings = section.TryGetValue("Facings");
+            string sTurretOffset = section.TryGetValue("TurretOffset");
+            string sTurretY = section.TryGetValue("TurretY");
+            string hasUnloadFrames = section.TryGetValue("HasUnloadFrames");
+            string hasTurret = section.TryGetValue("HasTurret");
+            string isArmed = section.TryGetValue("IsArmed");
+            string noRemap = section.TryGetValue("NoRemap");
+
+            // parse and apply defaults (int)
+            int.TryParse(sTextID, out int textID);
+            int.TryParse(sTurretOffset, out int turrOffset);
+            int.TryParse(sTurretY, out int turrY);
+            int.TryParse(sFacings, out int facings);
+            UnitTypeFlag flags = UnitTypeFlag.None;
+            bool turret = YesNoBooleanTypeConverter.Parse(hasTurret);
+            if (turret) { flags |= UnitTypeFlag.HasTurret; }
+            if (YesNoBooleanTypeConverter.Parse(isArmed)) { flags |= UnitTypeFlag.IsArmed; }
+            if (YesNoBooleanTypeConverter.Parse(noRemap)) { flags |= UnitTypeFlag.NoRemap; }
+            FrameUsage bodyFrameUsage = FrameUsage.None;
+            FrameUsage turrFrameUsage = FrameUsage.None;
+            switch (facings)
+            {
+                case 32:
+                    bodyFrameUsage |= FrameUsage.Frames32Full;
+                    if (turret) { turrFrameUsage |= FrameUsage.Frames32Full; }
+                    break;
+                case 8:
+                    bodyFrameUsage |= FrameUsage.Frames08Cardinal;
+                    break;
+                default:
+                    bodyFrameUsage |= FrameUsage.Frames01Single;
+                    break;
+            }
+            if (YesNoBooleanTypeConverter.Parse(hasUnloadFrames)) { bodyFrameUsage |= FrameUsage.HasUnloadFrames; }
+
+            // apply defaults (string)
+            if (string.IsNullOrEmpty(owner) || "NONE".Equals(owner, StringComparison.OrdinalIgnoreCase)) { owner = "Neutral"; }
+
+            string stringText;
+            if (!string.IsNullOrEmpty(text))
+            {
+                stringText = "TEXT_VEHICLE_" + text;
+                if (additionalText != null)
+                {
+                    additionalText[stringText] = text;
+                }
+            }
+            else
+            {
+                stringText = "TEXT_VEHICLE_" + textID;
+                if (mappedText != null)
+                {
+                    mappedText[stringText] = textID;
+                }
+            }
+
+            UnitTypes.ModifyOrAddVehicle(id, stringText, owner, bodyFrameUsage, turrFrameUsage, turrOffset, turrY, flags);
+        }
+
+        private void InitModAircraftType(INISection section, Dictionary<string, int> mappedText, Dictionary<string, string> additionalText)
+        {
+            string id = section.Name;
+            string sTextID = section.TryGetValue("TextID");
+            string text = section.TryGetValue("Name");
+            string owner = section.TryGetValue("Owner");
+            string sTurretOffset = section.TryGetValue("TurretOffset");
+            string sTurretY = section.TryGetValue("TurretY");
+            string isFixedWing = section.TryGetValue("IsFixedWing");
+            string hasUnloadFrames = section.TryGetValue("HasUnloadFrames");
+            string hasRotor = section.TryGetValue("HasRotor");
+            string hasDoubleRotor = section.TryGetValue("hasDoubleRotor");
+            string isArmed = section.TryGetValue("IsArmed");
+            string noRemap = section.TryGetValue("NoRemap");
+
+            // parse and apply defaults (int)
+            int.TryParse(sTextID, out int textID);
+            int.TryParse(sTurretOffset, out int turrOffset);
+            int.TryParse(sTurretY, out int turrY);
+            UnitTypeFlag flags = UnitTypeFlag.None;
+            FrameUsage bodyFrameUsage = FrameUsage.Frames32Full;
+            FrameUsage turrFrameUsage = FrameUsage.None;
+            string turret = null;
+            string turret2 = null;
+            if (YesNoBooleanTypeConverter.Parse(hasRotor)) 
+            { 
+                flags |= UnitTypeFlag.HasTurret;
+                turrFrameUsage = FrameUsage.Rotor;
+                turret = "LROTOR";
+                if (YesNoBooleanTypeConverter.Parse(hasDoubleRotor))
+                {
+                    flags |= UnitTypeFlag.HasDoubleTurret;
+                    turret = "RROTOR";
+                }
+            }
+            if (YesNoBooleanTypeConverter.Parse(isArmed)) { flags |= UnitTypeFlag.IsArmed; }
+            if (YesNoBooleanTypeConverter.Parse(noRemap)) { flags |= UnitTypeFlag.NoRemap; }
+            if (YesNoBooleanTypeConverter.Parse(hasUnloadFrames)) { bodyFrameUsage |= FrameUsage.HasUnloadFrames; }
+
+            // apply defaults (string)
+            if (string.IsNullOrEmpty(owner) || "NONE".Equals(owner, StringComparison.OrdinalIgnoreCase)) { owner = "Neutral"; }
+
+            string stringText;
+            if (!string.IsNullOrEmpty(text))
+            {
+                stringText = "TEXT_AIRCRAFT_" + text;
+                if (additionalText != null)
+                {
+                    additionalText[stringText] = text;
+                }
+            }
+            else
+            {
+                stringText = "TEXT_AIRCRAFT_" + textID;
+                if (mappedText != null)
+                {
+                    mappedText[stringText] = textID;
+                }
+            }
+
+            UnitTypes.ModifyOrAddAircraft(id, stringText, owner, bodyFrameUsage, turrFrameUsage, turret, turret2, turrOffset, turrY, flags);
+        }
+
+        private void InitModTerrainType(INISection section, Dictionary<string, int> mappedText, Dictionary<string, string> additionalText)
+        {
+            string id = section.Name;
+            string sTextID = section.TryGetValue("TextID");
+            string text = section.TryGetValue("Name");
+            string sCenterX = section.TryGetValue("CenterX");
+            string sCenterY = section.TryGetValue("CenterY");
+            string sWidth = section.TryGetValue("Width");
+            string sHeight = section.TryGetValue("Height");
+            string occupyMask = section.TryGetValue("OccupyMask");
+
+            // parse and apply defaults (int)
+            int.TryParse(sTextID, out int textID);
+            if (!int.TryParse(sWidth, out int width)) { width = 1; }
+            if (!int.TryParse(sHeight, out int height)) { height = 1; }
+            if (!int.TryParse(sCenterX, out int centerX)) { centerX = 12; }
+            if (!int.TryParse(sCenterY, out int centerY)) { centerY = 12; }
+
+            // apply defaults (string)
+            if (string.IsNullOrEmpty(occupyMask) || "NONE".Equals(occupyMask, StringComparison.OrdinalIgnoreCase)) { occupyMask = null; }
+
+            string stringText;
+            if (!string.IsNullOrEmpty(text))
+            {
+                stringText = "TEXT_TERRAIN_" + text;
+                if (additionalText != null)
+                {
+                    additionalText[stringText] = text;
+                }
+            }
+            else
+            {
+                stringText = "TEXT_TERRAIN_" + textID;
+                if (mappedText != null)
+                {
+                    mappedText[stringText] = textID;
+                }
+            }
+
+            TerrainTypes.ModifyOrAdd(id, stringText, width, height, centerX, centerY, occupyMask);
+        }
+
 
         public override string GetClassicOpposingPlayer(string player) => HouseTypes.GetClassicOpposingPlayer(player);
 

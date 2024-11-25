@@ -62,11 +62,9 @@ namespace MobiusEditor.TiberianDawn
                  select field.GetValue(null) as UnitType);
         }
 
-        public static UnitType ModifyOrAddVehicle(string name, string text, string ownerHouse, FrameUsage bodyFrameUsage, FrameUsage turrFrameUsage, int turrOffset, int turrY, UnitTypeFlag flags)
+        public static UnitType ModifyOrAddVehicle(string name, string stringTextid, string ownerHouse, FrameUsage bodyFrameUsage, FrameUsage turrFrameUsage, int turrOffset, int turrY, UnitTypeFlag flags)
         {
-            string stringTextid = "TEXT_" + text;
-            Globals.TheGameTextManager[stringTextid] = text;
-            UnitType newtype = null;
+            UnitType newtype;
             for (int i = 0; i < Types.Count; i++)
             {
                 if (Types[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
@@ -85,11 +83,9 @@ namespace MobiusEditor.TiberianDawn
             return newtype;
         }
 
-        public static UnitType ModifyOrAddAircraft(string name, string text, string ownerHouse, FrameUsage bodyFrameUsage, FrameUsage turrFrameUsage, string turret, string turret2, int turrOffset, int turrY, UnitTypeFlag flags)
+        public static UnitType ModifyOrAddAircraft(string name, string stringTextid, string ownerHouse, FrameUsage bodyFrameUsage, FrameUsage turrFrameUsage, string turret, string turret2, int turrOffset, int turrY, UnitTypeFlag flags)
         {
-            string stringTextid = "TEXT_" + text;
-            Globals.TheGameTextManager[stringTextid] = text;
-            UnitType newtype = null;
+            UnitType newtype;
             for (int i = 0; i < Types.Count; i++)
             {
                 if (Types[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))

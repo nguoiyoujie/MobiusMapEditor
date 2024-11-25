@@ -220,9 +220,13 @@ namespace MobiusEditor.Utility
             List<string> loadErrors = new List<string>();
             List<string> fileLoadErrors = new List<string>();
             GameInfo[] gameTypeInfo = GameTypeFactory.GetGameInfos();
+
+            Dictionary<string, int> mappedText = new Dictionary<string, int>();
+            Dictionary<string, string> additionalText = new Dictionary<string, string>();
             foreach (GameInfo gic in gameTypeInfo)
             {
                 gic.InitClassicFiles(mfm.ClassicFileManager, loadErrors, fileLoadErrors, true);
+                gic.InitModFiles(mfm.ClassicFileManager, loadErrors, fileLoadErrors, true, mappedText, additionalText);
             }
             mfm.Reset(GameType.None, null);
             if (loadErrors.Count > 0)
@@ -281,9 +285,10 @@ namespace MobiusEditor.Utility
             AddMissingRemasterText(gtm);
             Globals.TheGameTextManager = gtm;
 
-            foreach (GameInfo gic in gameTypeInfo)
+            // mapped text is ignored
+            foreach (var kvp in additionalText)
             {
-                gic.InitModFiles(loadErrors, fileLoadErrors, true);
+                gtm[kvp.Key] = kvp.Value;
             }
             return true;
         }
@@ -363,10 +368,13 @@ namespace MobiusEditor.Utility
             MixfileManager mfm = new MixfileManager(applicationPath, romfis, gameFolders, modpaths);
             List<string> loadErrors = new List<string>();
             List<string> fileLoadErrors = new List<string>();
+            Dictionary<string, int> mappedText = new Dictionary<string, int>();
+            Dictionary<string, string> additionalText = new Dictionary<string, string>();
             foreach (GameType gi in gameTypes)
             {
                 GameInfo gic = gameTypeInfo[(int)gi];
                 gic.InitClassicFiles(mfm, loadErrors, fileLoadErrors, false);
+                gic.InitModFiles(mfm, loadErrors, fileLoadErrors, false, mappedText, additionalText);
             }
             mfm.Reset(GameType.None, null);
             if (loadErrors.Count > 0)
@@ -402,10 +410,13 @@ namespace MobiusEditor.Utility
             AddMissingClassicText(gtm);
             Globals.TheGameTextManager = gtm;
 
-            foreach (GameType gi in gameTypes)
+            foreach (var kvp in mappedText)
             {
-                GameInfo gic = gameTypeInfo[(int)gi];
-                gic.InitModFiles(loadErrors, fileLoadErrors, false);
+                gtm.AddMappedText(kvp.Key, kvp.Value);
+            }
+            foreach (var kvp in additionalText)
+            {
+                gtm[kvp.Key] = kvp.Value;
             }
             return true;
         }
